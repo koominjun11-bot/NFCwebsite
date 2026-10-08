@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>오늘 저녁 뭐 먹지</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFF4D6; --surface:#FFFBEF; --surface-2:#FFE9A8; --ink:#2B2103; --ink-soft:#7A6A33;
+  --accent:#F2B705; --accent-ink:#2B2103; --accent-2:#E2574C; --line:#F0D98C; --danger:#C23B22;
+  --shadow:0 18px 40px -18px rgba(43,33,3,0.35);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#201A08; --surface:#2A220D; --surface-2:#3A2E10; --ink:#FFF3D6; --ink-soft:#C9B679;
+    --accent:#F2B705; --accent-ink:#201A08; --accent-2:#FF8A6B; --line:#4A3C14; --danger:#FF8A6B;
+    --shadow:0 18px 40px -18px rgba(0,0,0,0.6);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#201A08; --surface:#2A220D; --surface-2:#3A2E10; --ink:#FFF3D6; --ink-soft:#C9B679;
+  --accent:#F2B705; --accent-ink:#201A08; --accent-2:#FF8A6B; --line:#4A3C14; --danger:#FF8A6B;
+  --shadow:0 18px 40px -18px rgba(0,0,0,0.6);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{background:var(--bg);color:var(--ink);font-family:'Noto Sans KR',system-ui,sans-serif;font-weight:500;
+  min-height:100vh;display:flex;justify-content:center;padding:48px 20px 80px;}
+.page{width:100%;max-width:560px;display:flex;flex-direction:column;gap:30px;}
+.eyebrow{font-size:14px;color:var(--ink-soft);margin:0 0 6px;font-weight:700;}
+h1{font-family:'Jua',sans-serif;font-weight:400;font-size:clamp(32px,7vw,46px);line-height:1.3;margin:0;}
+h1 .stroke{-webkit-text-stroke:1.5px var(--accent-2);color:transparent;}
+section.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:24px;box-shadow:var(--shadow);}
+.field-label{font-size:13px;font-weight:800;color:var(--ink-soft);margin-bottom:12px;display:block;}
+.chip-row{display:flex;flex-wrap:wrap;gap:10px;}
+.chip{position:relative;}
+.chip input{position:absolute;opacity:0;inset:0;cursor:pointer;margin:0;}
+.chip label{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:999px;border:1.5px solid var(--line);
+  font-size:14px;font-weight:700;color:var(--ink-soft);cursor:pointer;transition:all .15s ease;user-select:none;}
+.chip input:checked + label{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);}
+.chip input:focus-visible + label{outline:2px solid var(--accent-2);outline-offset:2px;}
+.price-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+@media (min-width:480px){.price-row{grid-template-columns:repeat(4,1fr);}}
+.price-row label{display:block;text-align:center;padding:12px 6px;border-radius:12px;border:1.5px solid var(--line);
+  font-size:13px;font-weight:700;color:var(--ink-soft);cursor:pointer;transition:all .15s ease;}
+.price-row input{position:absolute;opacity:0;pointer-events:none;}
+.price-row input:checked + label{background:var(--surface-2);border-color:var(--accent-2);color:var(--ink);}
+.draw-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;padding:8px 0 4px;}
+.draw-btn{width:168px;height:168px;border-radius:50%;border:none;background:var(--accent);color:var(--accent-ink);
+  font-family:'Jua',sans-serif;font-weight:400;font-size:22px;cursor:pointer;box-shadow:0 20px 40px -14px rgba(242,183,5,0.6);
+  transition:transform .15s ease;}
+.draw-btn:hover{transform:translateY(-2px);}
+.draw-btn:active{transform:scale(0.97);}
+.draw-btn:disabled{background:var(--surface-2);color:var(--ink-soft);box-shadow:none;cursor:not-allowed;}
+.draw-hint{font-size:13px;color:var(--ink-soft);min-height:18px;text-align:center;font-weight:700;}
+.result{display:none;border:1.5px dashed var(--line);border-radius:16px;padding:24px;background:var(--surface-2);text-align:center;}
+.result.show{display:block;}
+.result.spinning .result-emoji{animation:spin-pulse .12s linear infinite;}
+@keyframes spin-pulse{from{transform:scale(1);}to{transform:scale(1.08);}}
+.result-emoji{font-size:48px;display:block;margin-bottom:4px;}
+.result-tag{font-size:12px;font-weight:800;color:var(--accent-2);}
+.result-name{font-family:'Jua',sans-serif;font-weight:400;font-size:30px;margin:6px 0 4px;}
+.result-price{font-size:15px;color:var(--ink-soft);margin-bottom:18px;font-weight:700;}
+.result-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.btn{border:none;border-radius:10px;padding:11px 20px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;}
+.btn-primary{background:var(--accent);color:var(--accent-ink);}
+.btn-ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink);}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+.last-eaten{margin-top:16px;font-size:14px;color:var(--ink-soft);min-height:20px;font-weight:600;}
+.last-eaten strong{color:var(--ink);}
+.history-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;flex-wrap:wrap;gap:6px;}
+.history-head h2{font-family:'Jua',sans-serif;font-weight:400;font-size:19px;margin:0;}
+.history-total{font-size:13px;color:var(--ink-soft);font-weight:700;margin-bottom:12px;}
+.history-clear{background:none;border:none;color:var(--ink-soft);font-size:12px;cursor:pointer;text-decoration:underline;padding:0;}
+.history-list{display:flex;flex-direction:column;}
+.history-row{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);}
+.history-row:last-child{border-bottom:none;}
+.history-emoji{font-size:20px;}
+.history-date{font-size:12px;color:var(--ink-soft);width:56px;flex-shrink:0;font-weight:700;}
+.history-name{font-weight:800;font-size:15px;flex:1;}
+.history-meta{font-size:12px;color:var(--ink-soft);text-align:right;font-weight:700;}
+.empty-note{font-size:14px;color:var(--ink-soft);text-align:center;padding:12px 0;}
+.manage-form{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--line);}
+.manage-row-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.manage-form input,.manage-form select{
+  font-family:inherit;font-size:14px;font-weight:600;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);
+  background:var(--surface);color:var(--ink);width:100%;}
+.manage-list{max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;}
+.manage-item{display:flex;align-items:center;gap:8px;padding:8px 4px;border-radius:10px;}
+.manage-item.excluded{opacity:.45;}
+.manage-item-name{flex:1;font-size:14px;font-weight:700;}
+.manage-item-meta{font-size:11px;color:var(--ink-soft);font-weight:600;}
+.tiny-btn{border:none;background:var(--surface-2);color:var(--ink);font-size:12px;font-weight:800;padding:6px 10px;border-radius:8px;cursor:pointer;}
+.tiny-btn.danger{color:var(--danger);}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div>
+    <p class="eyebrow">저녁 메뉴 뽑기</p>
+    <h1>오늘은<br>무슨 <span class="stroke">음식</span>을<br>먹을까?</h1>
+  </div>
+
+  <section class="card">
+    <span class="field-label">먹고 싶은 종류 (중복 선택 가능)</span>
+    <div class="chip-row" id="categoryRow"></div>
+  </section>
+
+  <section class="card">
+    <span class="field-label">조리 방식 (선택 안 하면 전체)</span>
+    <div class="chip-row" id="typeRow"></div>
+  </section>
+
+  <section class="card">
+    <span class="field-label">예산</span>
+    <div class="price-row" id="priceRow"></div>
+  </section>
+
+  <section class="card draw-wrap">
+    <button class="draw-btn" id="drawBtn">메뉴 뽑기</button>
+    <p class="draw-hint" id="drawHint">종류를 하나 이상 골라주세요</p>
+
+    <div class="result" id="result">
+      <span class="result-emoji" id="resultEmoji"></span>
+      <p class="result-tag" id="resultTag"></p>
+      <p class="result-name" id="resultName"></p>
+      <p class="result-price" id="resultPrice"></p>
+      <div class="result-actions">
+        <button class="btn btn-ghost" id="redrawBtn">다시 뽑기</button>
+        <button class="btn btn-primary" id="pickBtn">이걸로 결정!</button>
+      </div>
+      <p class="last-eaten" id="lastEaten"></p>
+    </div>
+  </section>
+
+  <section class="card">
+    <span class="field-label">메뉴 관리</span>
+    <div class="manage-form">
+      <input type="text" id="newName" placeholder="메뉴 이름 (예: 마라탕)" />
+      <div class="manage-row-inputs">
+        <select id="newCategory"></select>
+        <select id="newType"></select>
+      </div>
+      <div class="manage-row-inputs">
+        <input type="number" id="newPrice" placeholder="가격 (원)" min="0" step="500" />
+        <input type="text" id="newEmoji" placeholder="이모지 (선택, 예: 🍜)" maxlength="2" />
+      </div>
+      <button class="btn btn-primary" id="addFoodBtn" type="button">내 메뉴 추가하기</button>
+    </div>
+    <span class="field-label" style="margin-bottom:8px;">전체 메뉴 (제외하면 뽑기에서 빠져요)</span>
+    <div class="manage-list" id="manageList"></div>
+  </section>
+
+  <section class="card">
+    <div class="history-head">
+      <h2>최근에 먹은 메뉴</h2>
+      <button class="history-clear" id="clearHistory">기록 지우기</button>
+    </div>
+    <p class="history-total" id="historyTotal"></p>
+    <div class="history-list" id="historyList"></div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  var CATEGORIES = ["한식","중식","일식","양식","분식"];
+  var TYPES = ["국물류","면류","볶음류","구이류","튀김류","비빔류","기타"];
+
+  var BASE_FOODS = [
+    {name:"김치찌개",category:"한식",price:8000,type:"국물류",emoji:"🍲"},
+    {name:"된장찌개",category:"한식",price:8000,type:"국물류",emoji:"🍲"},
+    {name:"비빔밥",category:"한식",price:9000,type:"비빔류",emoji:"🍚"},
+    {name:"순두부찌개",category:"한식",price:9000,type:"국물류",emoji:"🍲"},
+    {name:"제육볶음",category:"한식",price:10000,type:"볶음류",emoji:"🍖"},
+    {name:"냉면",category:"한식",price:10000,type:"면류",emoji:"🍜"},
+    {name:"갈비탕",category:"한식",price:12000,type:"국물류",emoji:"🍖"},
+    {name:"불고기",category:"한식",price:15000,type:"구이류",emoji:"🥩"},
+    {name:"삼겹살",category:"한식",price:18000,type:"구이류",emoji:"🥓"},
+    {name:"육회",category:"한식",price:25000,type:"기타",emoji:"🥩"},
+    {name:"갈비찜",category:"한식",price:40000,type:"기타",emoji:"🍖"},
+    {name:"한정식",category:"한식",price:35000,type:"기타",emoji:"🍱"},
+    {name:"짜장면",category:"중식",price:7000,type:"면류",emoji:"🍜"},
+    {name:"짬뽕",category:"중식",price:8000,type:"면류",emoji:"🍜"},
+    {name:"볶음밥",category:"중식",price:8000,type:"볶음류",emoji:"🍚"},
+    {name:"마파두부",category:"중식",price:12000,type:"볶음류",emoji:"🌶️"},
+    {name:"딤섬 세트",category:"중식",price:15000,type:"기타",emoji:"🥟"},
+    {name:"탕수육",category:"중식",price:18000,type:"튀김류",emoji:"🍖"},
+    {name:"깐풍기",category:"중식",price:20000,type:"튀김류",emoji:"🍗"},
+    {name:"훠궈",category:"중식",price:40000,type:"국물류",emoji:"🍲"},
+    {name:"양장피",category:"중식",price:45000,type:"기타",emoji:"🥗"},
+    {name:"우동",category:"일식",price:8000,type:"면류",emoji:"🍜"},
+    {name:"라멘",category:"일식",price:9000,type:"면류",emoji:"🍜"},
+    {name:"규동",category:"일식",price:9000,type:"기타",emoji:"🍚"},
+    {name:"가라아게",category:"일식",price:10000,type:"튀김류",emoji:"🍗"},
+    {name:"돈카츠",category:"일식",price:11000,type:"튀김류",emoji:"🍖"},
+    {name:"텐동",category:"일식",price:12000,type:"튀김류",emoji:"🍚"},
+    {name:"초밥 세트",category:"일식",price:20000,type:"기타",emoji:"🍣"},
+    {name:"사시미 모듬",category:"일식",price:35000,type:"기타",emoji:"🐟"},
+    {name:"스키야키",category:"일식",price:45000,type:"국물류",emoji:"🍲"},
+    {name:"햄버거",category:"양식",price:9000,type:"기타",emoji:"🍔"},
+    {name:"샐러드 플레이트",category:"양식",price:12000,type:"기타",emoji:"🥗"},
+    {name:"파스타",category:"양식",price:14000,type:"면류",emoji:"🍝"},
+    {name:"피자",category:"양식",price:18000,type:"기타",emoji:"🍕"},
+    {name:"리조또",category:"양식",price:16000,type:"기타",emoji:"🍚"},
+    {name:"브런치 세트",category:"양식",price:20000,type:"기타",emoji:"🍳"},
+    {name:"스테이크",category:"양식",price:35000,type:"구이류",emoji:"🥩"},
+    {name:"랍스터",category:"양식",price:55000,type:"기타",emoji:"🦞"},
+    {name:"라면",category:"분식",price:4000,type:"국물류",emoji:"🍜"},
+    {name:"김밥",category:"분식",price:4000,type:"기타",emoji:"🍙"},
+    {name:"떡볶이",category:"분식",price:5000,type:"볶음류",emoji:"🌶️"},
+    {name:"튀김",category:"분식",price:5000,type:"튀김류",emoji:"🍤"},
+    {name:"순대",category:"분식",price:6000,type:"기타",emoji:"🌭"},
+    {name:"쫄면",category:"분식",price:6000,type:"면류",emoji:"🍜"},
+    {name:"만두",category:"분식",price:6000,type:"기타",emoji:"🥟"},
+    {name:"순대국밥",category:"분식",price:9000,type:"국물류",emoji:"🍲"}
+  ];
+
+  var PRICE_OPTIONS = [
+    {label:"1만원 이하",value:10000},{label:"3만원 이하",value:30000},
+    {label:"5만원 이하",value:50000},{label:"상관없음",value:Infinity}
+  ];
+
+  var CUSTOM_KEY = "dinner-picker-custom-v2";
+  var EXCLUDED_KEY = "dinner-picker-excluded-v2";
+  var HISTORY_KEY = "dinner-picker-history-v2";
+
+  var selectedCategories = new Set();
+  var selectedTypes = new Set();
+  var priceLimit = Infinity;
+  var currentPick = null;
+  var spinning = false;
+
+  function loadJSON(key, fallback){
+    try{ var raw = localStorage.getItem(key); if(!raw) return fallback; var p = JSON.parse(raw); return Array.isArray(p)?p:fallback; }
+    catch(e){ return fallback; }
+  }
+  function saveJSON(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
+
+  var customFoods = loadJSON(CUSTOM_KEY, []);
+  var excludedNames = loadJSON(EXCLUDED_KEY, []);
+  var history = loadJSON(HISTORY_KEY, []);
+
+  function allFoods(){ return BASE_FOODS.concat(customFoods); }
+
+  var categoryRow=document.getElementById("categoryRow"), typeRow=document.getElementById("typeRow"),
+      priceRow=document.getElementById("priceRow"), drawBtn=document.getElementById("drawBtn"),
+      drawHint=document.getElementById("drawHint"), resultEl=document.getElementById("result"),
+      resultEmoji=document.getElementById("resultEmoji"), resultTag=document.getElementById("resultTag"),
+      resultName=document.getElementById("resultName"), resultPrice=document.getElementById("resultPrice"),
+      lastEatenEl=document.getElementById("lastEaten"), redrawBtn=document.getElementById("redrawBtn"),
+      pickBtn=document.getElementById("pickBtn"), historyList=document.getElementById("historyList"),
+      historyTotal=document.getElementById("historyTotal"), clearHistoryBtn=document.getElementById("clearHistory"),
+      newName=document.getElementById("newName"), newCategory=document.getElementById("newCategory"),
+      newType=document.getElementById("newType"), newPrice=document.getElementById("newPrice"),
+      newEmoji=document.getElementById("newEmoji"), addFoodBtn=document.getElementById("addFoodBtn"),
+      manageList=document.getElementById("manageList");
+
+  function formatWon(n){ return n.toLocaleString("ko-KR")+"원"; }
+  function formatDate(iso){ var d=new Date(iso); var mm=String(d.getMonth()+1).padStart(2,"0"); var dd=String(d.getDate()).padStart(2,"0"); return (d.getFullYear()+"").slice(2)+"."+mm+"."+dd; }
+  function daysAgo(iso){ var t=new Date(iso), n=new Date(); t.setHours(0,0,0,0); n.setHours(0,0,0,0); return Math.round((n-t)/86400000); }
+
+  function buildChipRow(container, items, set, name){
+    items.forEach(function(item,i){
+      var id = name+"-"+i;
+      var wrap = document.createElement("div"); wrap.className="chip";
+      wrap.innerHTML = '<input type="checkbox" id="'+id+'" /><label for="'+id+'">'+item+'</label>';
+      container.appendChild(wrap);
+      wrap.querySelector("input").addEventListener("change", function(e){
+        if(e.target.checked) set.add(item); else set.delete(item);
+        if(name==="cat") updateDrawState();
+      });
+    });
+  }
+
+  function buildPriceOptions(){
+    PRICE_OPTIONS.forEach(function(opt,i){
+      var id="price-"+i;
+      var wrap=document.createElement("div"); wrap.style.position="relative";
+      wrap.innerHTML='<input type="radio" name="price" id="'+id+'" '+(i===PRICE_OPTIONS.length-1?"checked":"")+' /><label for="'+id+'">'+opt.label+'</label>';
+      priceRow.appendChild(wrap);
+      wrap.querySelector("input").addEventListener("change", function(){ if(this.checked) priceLimit=opt.value; });
+    });
+  }
+
+  function fillSelect(sel, items){ sel.innerHTML=""; items.forEach(function(it){ var o=document.createElement("option"); o.value=it; o.textContent=it; sel.appendChild(o); }); }
+
+  function updateDrawState(){
+    var enabled = selectedCategories.size>0;
+    drawBtn.disabled = !enabled || spinning;
+    drawHint.textContent = enabled ? "" : "종류를 하나 이상 골라주세요";
+  }
+
+  function recentNames(n){
+    var seen=[]; for(var i=0;i<history.length && seen.length<n;i++){ if(seen.indexOf(history[i].name)===-1) seen.push(history[i].name); } return seen;
+  }
+
+  function getPool(){
+    var excl = recentNames(3);
+    var base = allFoods().filter(function(f){
+      if(excludedNames.indexOf(f.name)!==-1) return false;
+      if(!selectedCategories.has(f.category)) return false;
+      if(selectedTypes.size>0 && !selectedTypes.has(f.type)) return false;
+      if(f.price>priceLimit) return false;
+      return true;
+    });
+    var withoutRecent = base.filter(function(f){ return excl.indexOf(f.name)===-1; });
+    return withoutRecent.length>0 ? withoutRecent : base;
+  }
+
+  function renderFrame(food){
+    resultEmoji.textContent=food.emoji||"🍽️";
+    resultTag.textContent=food.category+" · "+food.type;
+    resultName.textContent=food.name;
+    resultPrice.textContent=formatWon(food.price);
+  }
+
+  function showFinal(food){
+    currentPick=food; renderFrame(food); lastEatenEl.textContent="";
+    resultEl.classList.remove("spinning"); resultEl.classList.add("show");
+    spinning=false; updateDrawState(); redrawBtn.disabled=false; pickBtn.disabled=false;
+  }
+
+  function draw(){
+    var pool=getPool();
+    if(pool.length===0){ drawHint.textContent="조건에 맞는 메뉴가 없어요. 예산이나 종류를 넓혀보세요"; resultEl.classList.remove("show"); return; }
+    drawHint.textContent=""; spinning=true; drawBtn.disabled=true; redrawBtn.disabled=true; pickBtn.disabled=true;
+    resultEl.classList.add("show","spinning");
+    var finalPick = pool[Math.floor(Math.random()*pool.length)];
+    var ticks=16, delay=55;
+    function tick(i){
+      if(i>=ticks){ showFinal(finalPick); return; }
+      renderFrame(pool[Math.floor(Math.random()*pool.length)]);
+      delay = delay*1.14;
+      setTimeout(function(){ tick(i+1); }, delay);
+    }
+    tick(0);
+  }
+
+  function pickThis(){
+    if(!currentPick || spinning) return;
+    var prior = history.find(function(h){ return h.name===currentPick.name; });
+    if(prior){ var d=daysAgo(prior.date); var phrase = d===0?"오늘 이미 드셨네요":d+"일 만이에요"; lastEatenEl.innerHTML="마지막으로 드신 건 <strong>"+formatDate(prior.date)+"</strong> — "+phrase; }
+    else{ lastEatenEl.innerHTML="<strong>처음</strong> 뽑힌 메뉴예요"; }
+    history.unshift({name:currentPick.name,category:currentPick.category,price:currentPick.price,emoji:currentPick.emoji,date:new Date().toISOString()});
+    history=history.slice(0,30); saveJSON(HISTORY_KEY, history); renderHistory();
+  }
+
+  function renderHistory(){
+    historyList.innerHTML="";
+    if(history.length===0){
+      historyTotal.textContent="";
+      var e=document.createElement("p"); e.className="empty-note"; e.textContent="아직 기록이 없어요. 메뉴를 뽑고 결정해보세요"; historyList.appendChild(e); return;
+    }
+    var total = history.reduce(function(s,h){ return s+h.price; },0);
+    historyTotal.textContent="최근 "+history.length+"건 합계 "+formatWon(total);
+    history.forEach(function(h){
+      var row=document.createElement("div"); row.className="history-row";
+      row.innerHTML='<span class="history-emoji">'+(h.emoji||"🍽️")+'</span><span class="history-date">'+formatDate(h.date)+'</span><span class="history-name">'+h.name+'</span><span class="history-meta">'+h.category+' · '+formatWon(h.price)+'</span>';
+      historyList.appendChild(row);
+    });
+  }
+
+  function renderManageList(){
+    manageList.innerHTML="";
+    allFoods().forEach(function(f){
+      var isExcluded = excludedNames.indexOf(f.name)!==-1;
+      var isCustom = customFoods.some(function(c){ return c.name===f.name; });
+      var row=document.createElement("div"); row.className="manage-item"+(isExcluded?" excluded":"");
+      row.innerHTML =
+        '<span style="font-size:18px;">'+(f.emoji||"🍽️")+'</span>'+
+        '<span class="manage-item-name">'+f.name+'<div class="manage-item-meta">'+f.category+' · '+f.type+' · '+formatWon(f.price)+'</div></span>';
+      var toggleBtn=document.createElement("button"); toggleBtn.className="tiny-btn"; toggleBtn.type="button";
+      toggleBtn.textContent = isExcluded?"포함하기":"제외하기";
+      toggleBtn.addEventListener("click", function(){
+        if(isExcluded){ excludedNames = excludedNames.filter(function(n){ return n!==f.name; }); }
+        else{ excludedNames.push(f.name); }
+        saveJSON(EXCLUDED_KEY, excludedNames); renderManageList();
+      });
+      row.appendChild(toggleBtn);
+      if(isCustom){
+        var delBtn=document.createElement("button"); delBtn.className="tiny-btn danger"; delBtn.type="button"; delBtn.textContent="삭제";
+        delBtn.addEventListener("click", function(){
+          customFoods = customFoods.filter(function(c){ return c.name!==f.name; });
+          saveJSON(CUSTOM_KEY, customFoods); renderManageList();
+        });
+        row.appendChild(delBtn);
+      }
+      manageList.appendChild(row);
+    });
+  }
+
+  function addFood(){
+    var name=newName.value.trim();
+    var price=parseInt(newPrice.value,10);
+    if(!name){ newName.focus(); return; }
+    if(isNaN(price)||price<0){ newPrice.focus(); return; }
+    var emoji = newEmoji.value.trim() || "🍽️";
+    customFoods.push({name:name,category:newCategory.value,type:newType.value,price:price,emoji:emoji});
+    saveJSON(CUSTOM_KEY, customFoods);
+    newName.value=""; newPrice.value=""; newEmoji.value="";
+    renderManageList();
+  }
+
+  buildChipRow(categoryRow, CATEGORIES, selectedCategories, "cat");
+  buildChipRow(typeRow, TYPES, selectedTypes, "type");
+  buildPriceOptions();
+  fillSelect(newCategory, CATEGORIES);
+  fillSelect(newType, TYPES);
+  updateDrawState();
+  renderHistory();
+  renderManageList();
+
+  drawBtn.addEventListener("click", draw);
+  redrawBtn.addEventListener("click", draw);
+  pickBtn.addEventListener("click", pickThis);
+  addFoodBtn.addEventListener("click", addFood);
+  clearHistoryBtn.addEventListener("click", function(){ history=[]; saveJSON(HISTORY_KEY, history); renderHistory(); });
+})();
+</script>
+</body>
+</html>
+
